@@ -126,7 +126,12 @@
                     $firstname = trim($firstname);
                     $lastname = trim($lastname);
                     
-                    if (!empty($username) && !array_key_exists($username, $data)) {
+                    // Validate username as MAC address or PIN code
+                    $isValidMacOrPin = (preg_match(MACADDR_REGEX, $username) === 1 || 
+                                        preg_match(PINCODE_REGEX, $username) === 1 ||
+                                        preg_match(IP_REGEX, $username) === 1);
+                    
+                    if ($isValidMacOrPin && !array_key_exists($username, $data)) {
                         $data[$username] = array( "Accept", $email, $firstname, $lastname );
                     }
 
@@ -151,8 +156,8 @@
                         continue;
                     }
 
-                    // FORCE Auth-Type := Accept for otherAuth (MAC/PIN)
-                    if ($authType === 'otherAuth') {
+                    // FORCE Auth-Type := Accept for Auth-Type passwordType (MAC/PIN)
+                    if ($passwordType === 'Auth-Type') {
                         if (!insert_single_attribute($dbSocket, $subject, 'Auth-Type', ':=', 'Accept')) {
                             continue;
                         }
